@@ -1,0 +1,6 @@
+@Minimal_API_CI_CD_HostAddress = http://localhost:5130
+
+GET {{Minimal_API_CI_CD_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
