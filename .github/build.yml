@@ -1,0 +1,109 @@
+﻿name: Build
+
+on:
+  push:
+    branches:
+        - main
+        - develop
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  RUNTIME: 'win-x64'
+  CONFIGURATION: 'Release'
+  PUBLISH_PROJECT: 'Minimal-API-CI-CD.csproj'
+  SOLUTION: 'Minimal-API-CI-CD.sln'
+  ARTIFACT_RETENTION_DAYS: '14'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Show environment
+        shell: pwsh
+        run: |
+          dotnet --info
+          Write-Host "Commit: $env:GITHUB_SHA"
+          Write-Host "Ref: $env:GITHUB_REF"
+
+      - name: Restore
+        shell: pwsh
+        env: 
+          SOLUTION: ${{ env.SOLUTION }}
+        run: |
+          dotnet restore "$env:SOLUTION"
+
+      - name: Build
+        run: dotnet build "${{ env.SOLUTION }}" --configuration "${{ env.CONFIGURATION }}" --no-restore --nologo
+
+      - name: Publish
+        run: >-
+          dotnet publish "${{env.PUBLISH_PROJECT}}"
+          --configuration "${{env.CONFIGURATION}}"
+          --runtime "${{env.RUNTIME}}"
+          --self-contained true
+          --output "${{runner.temp}}\publish"
+          --nologo
+          --no-restore
+
+      - name: Create deployment package
+        shell: pwsh
+        env: 
+          PUBLISH_DIR: ${{runner.temp}}\publish
+          PACKAGE_DIR: ${{runner.temp}}\package
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if (-not (Test-Path $env:PUBLISH_DIR)) {
+            throw "Publish directory does not exist: $env:PUBLISH_DIR"
+          }
+
+          New-Item -ItemType Directory -Force -Path $env:PACKAGE_DIR | Out-Null
+
+          $packageName = "MyComApi-$env:GITHUB_SHA.zip"
+          $packagePath = Join-Path $env:PACKAGE_DIR $packageName
+
+          if (Test-Path $packagePath) {
+            Remove-Item -Force $packagePath
+          }
+
+          Compress-Archive -Path (Join-Path $env:PUBLISH_DIR '*') -DestinationPath $pacakgePath -CompressionLevel Optimal
+
+          $hash = (Get-FileHash -Path $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $packageName" | Set-Content -Path "$packagePath.sha256" -Encoding ascii
+
+          $manifest = [ordered]@{
+            application = 'MyComApi'
+            commit = $env:GITHUB_SHA
+            runId = $env:GITHUB_RUN_ID
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            ref = $env:RUNTIME
+            runtime = $env:RUNTIME
+            configuration = $env:CONFIGURATION
+            createdUtc = (Get-Date).ToUniversalTime().ToString('o')
+          }
+
+          $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $env:PACKAGE_DIR 'manifest.json') -Encoding utf8
+
+          Write-Host "Package: $packagePath"
+          Write-Host "SHA256:  $hash"
+
+      - name: Upload artifact
+        if: github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'main')
+        uses: actions/upload-artifact@v7
+        with:
+          name: MyComApi-${{github.sha}}
+          path: ${{runner.temp}}\package\
+          if-no-files-found: error
+          retention-days: ${{env.ARTIFACT_RETENTION_DAYS}}
