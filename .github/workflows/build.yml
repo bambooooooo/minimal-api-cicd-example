@@ -41,8 +41,10 @@ jobs:
         shell: pwsh
         env: 
           SOLUTION: ${{ env.SOLUTION }}
+          RUNTIME: ${{ env.RUNTIME }}
         run: |
-          dotnet restore "$env:SOLUTION"
+          $ErrorActionPreference = 'Stop'
+          dotnet restore "$env:SOLUTION" --runtime "$env:RUNTIME" --nologo
 
       - name: Build
         run: dotnet build "${{ env.SOLUTION }}" --configuration "${{ env.CONFIGURATION }}" --no-restore --nologo
@@ -78,7 +80,7 @@ jobs:
             Remove-Item -Force $packagePath
           }
 
-          Compress-Archive -Path (Join-Path $env:PUBLISH_DIR '*') -DestinationPath $pacakgePath -CompressionLevel Optimal
+          Compress-Archive -Path (Join-Path $env:PUBLISH_DIR '*') -DestinationPath $packagePath -CompressionLevel Optimal
 
           $hash = (Get-FileHash -Path $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $packageName" | Set-Content -Path "$packagePath.sha256" -Encoding ascii
@@ -88,7 +90,7 @@ jobs:
             commit = $env:GITHUB_SHA
             runId = $env:GITHUB_RUN_ID
             runAttempt = $env:GITHUB_RUN_ATTEMPT
-            ref = $env:RUNTIME
+            ref = $env:GITHUB_REF
             runtime = $env:RUNTIME
             configuration = $env:CONFIGURATION
             createdUtc = (Get-Date).ToUniversalTime().ToString('o')
