@@ -1,4 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Extensions.Hosting.WindowsServices;
+
+var options = new WebApplicationOptions
+{
+    Args = args,
+    // Setting to allow the service to run both in IDE and as service
+    ContentRootPath = WindowsServiceHelpers.IsWindowsService()
+        ? AppContext.BaseDirectory
+        : default
+};
+var builder = WebApplication.CreateBuilder(options);
+builder.Host.UseWindowsService();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
