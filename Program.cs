@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting.WindowsServices;
+using System.Net;
 
 var options = new WebApplicationOptions
 {
@@ -26,5 +27,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+var localIp = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+    && (ip.ToString().StartsWith("192.") || (ip.ToString().StartsWith("10."))));
+
+string port = builder.Configuration["port"] ?? "5000";
+
+app.Urls.Add($"http://{localIp}:{port}");
+app.Urls.Add($"http://localhost:{port}");
 
 app.Run();
