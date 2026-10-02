@@ -117,7 +117,7 @@ else {
     Move-Item -Path $stagingPath -Destination $releasePath
 }
 
-$exePath = Join-Path $releasePath 'MyComApi.exe'
+$exePath = Join-Path $releasePath 'Minimal-API-CI-CD.exe'
 if (-not (Test-Path $exePath)) {
     throw "Expected service executable not found: $exePath"
 }
@@ -153,8 +153,8 @@ try {
 
     # Verify the service points to the stable 'current' path.
     $serviceCim = Get-CimInstance Win32_Service -Filter "Name='$ServiceName'"
-    if ($serviceCim.PathName -notmatch [regex]::Escape((Join-Path $currentPath 'MyComApi.exe'))) {
-        throw "Windows service '$ServiceName' does not point to '$currentPath\MyComApi.exe'."
+    if ($serviceCim.PathName -notmatch [regex]::Escape((Join-Path $currentPath 'Minimal-API-CI-CD.exe'))) {
+        throw "Windows service '$ServiceName' does not point to '$currentPath\Minimal-API-CI-CD.exe'."
     }
 
     Write-Host "Starting service '$ServiceName'."
