@@ -7,6 +7,8 @@ var app = builder.Build();
 
 app.MapGet("/", () => "Hello from .NET");
 
+app.MapGet("/health", () => "Ok.");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
