@@ -3,7 +3,7 @@ name: Deploy on test
 on:
     workflow_run:
         workflows:
-            - build
+            - Build
         types:
             - completed
 
