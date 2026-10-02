@@ -122,7 +122,24 @@ if (-not (Test-Path $exePath)) {
     throw "Expected service executable not found: $exePath"
 }
 
-$service = Get-Service -Name $ServiceName -ErrorAction Stop
+$service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+
+if ($null -ne $service) {
+    Stop-Service -Name $ServiceName -Force
+    Write-Host "Service stopped successfully"
+} else {
+    Write-Host "Service '$ServiceName' not found. Installing..."
+
+    New-Service `
+        -Name $ServiceName `
+        -BinaryPathName "`"$ServiceName`"" `
+        -DisplayName $ServiceName `
+        -Description "MyComApi service" `
+        -StartupType Automatic
+
+    $service = Get-Service -Name $ServiceName -ErrorAction Stop
+}
+
 $previousTarget = $null
 $currentItem = Get-Item $currentPath -Force -ErrorAction SilentlyContinue
 if ($null -ne $currentItem) {
