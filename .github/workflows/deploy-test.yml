@@ -41,7 +41,7 @@ jobs:
             - name: Download extact CI artefact
               uses: actions/download-artifact@v8
               with:
-                name: MyComApi-${{ github.sha }}
+                name: MyComApi-${{ github.event.workflow_run.head_sha }}
                 path: ${{ runner.temp }}\deployment-artifact
                 run-id: ${{ github.event.workflow_run.id }}
                 github-token: ${{ secrets.GITHUB_TOKEN }}
