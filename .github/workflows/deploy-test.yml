@@ -68,7 +68,7 @@ jobs:
                 $expectedPackageName = "MyComApi-$env:EXPECTED_COMMIT.zip"
                 $packagePath = Join-Path $env:ARTIFACT_DIR $expectedPackageName
 
-                if (-not (Test-Path $packageName)) {
+                if (-not (Test-Path $packagePath)) {
                     throw "Expected deployment package not found: $packagePath"
                 }
 
