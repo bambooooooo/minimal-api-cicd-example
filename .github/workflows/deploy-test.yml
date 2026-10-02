@@ -41,10 +41,20 @@ jobs:
             - name: Download extact CI artefact
               uses: actions/download-artifact@v8
               with:
-                name: MyComApi-${{ github.event.workflow_run.head_sha }}
+                name: MyComApi-${{ github.sha }}
                 path: ${{ runner.temp }}\deployment-artifact
                 run-id: ${{ github.event.workflow_run.id }}
                 github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Verify artifact download
+              shell: pwsh
+              run: |
+                $artifactDIr = "${{ runner.temp }}\deployment-artifact"
+                $items = Get-ChildItem $artifactDir -ErrorAction SilentlyContinue
+                if (-not $items) {
+                    throw "Artifact directory is empty: $artifactDir"
+                }
+                Write-Host "Downloaded artifacts: $($items.Name -join ', ')"
 
             - name: Verify artefact manifest and checksum
               shell: pwsh
