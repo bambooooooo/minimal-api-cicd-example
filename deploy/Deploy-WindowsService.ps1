@@ -130,9 +130,11 @@ if ($null -ne $service) {
 } else {
     Write-Host "Service '$ServiceName' not found. Installing..."
 
+    $currentPathExe = Join-Path $currentPath 'Minimal-API-CI-CD.exe'
+
     New-Service `
         -Name $ServiceName `
-        -BinaryPathName "`"$currentPath`"" `
+        -BinaryPathName "`"$currentPathExe`"" `
         -DisplayName $ServiceName `
         -Description "MyComApi service" `
         -StartupType Automatic
