@@ -132,7 +132,7 @@ if ($null -ne $service) {
 
     New-Service `
         -Name $ServiceName `
-        -BinaryPathName "`"$ServiceName`"" `
+        -BinaryPathName "`"$exePath`"" `
         -DisplayName $ServiceName `
         -Description "MyComApi service" `
         -StartupType Automatic
