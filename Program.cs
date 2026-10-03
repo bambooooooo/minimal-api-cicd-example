@@ -29,7 +29,7 @@ app.MapGet("/health", () => {
     string randomAdjective = adjectives[random.Next(adjectives.Length)];
     string randomNoun = nouns[random.Next(nouns.Length)];
 
-    return $"Hello {randomAdjective} {randomNoun}";
+    return $"Hello {randomAdjective} {randomNoun}.";
 });
 
 // Configure the HTTP request pipeline.
